@@ -286,4 +286,5 @@ if __name__ == "__main__":
             cur_img = assignment8.warpImagePair(cur_img, new_img, homography)
         
         print "Writing output image to {}".format(outfolder)
+        print os.path.join(outfolder, setname) + ".jpg"
         cv2.imwrite(os.path.join(outfolder, setname) + ".jpg", cur_img)

@@ -64,11 +64,15 @@ def getImageCorners(image):
         corners (numpy.ndarray): Array of shape (4, 1, 2). Type of values in the
                                  array is np.float32.
     """
-    corners = np.zeros((4, 1, 2), dtype=np.float32)
+    #corners = np.zeros((4, 1, 2), dtype=np.float32)
     # WRITE YOUR CODE HERE
-
-
-
+    try:
+        x, y = image.shape
+    except ValueError:
+        x, y, _ = image.shape
+    corners = np.array([[[0, 0]], [[0, x]], [[y, 0]], [[y, x]]], dtype = np.float32)
+    print corners.shape
+    assert corners.shape == (4, 1, 2)
 
     return corners
     # END OF FUNCTION
@@ -130,7 +134,7 @@ def findMatchesBetweenImages(image_1, image_2, num_matches):
 
     # We coded the return statement for you. You are free to modify it -- just
     # make sure the tests pass.
-    return image_1_kp, image_2_kp, matches[:10]
+    return image_1_kp, image_2_kp, matches[:num_matches]
   # END OF FUNCTION.
 
 def findHomography(image_1_kp, image_2_kp, matches):
@@ -178,12 +182,15 @@ def findHomography(image_1_kp, image_2_kp, matches):
     image_2_points = np.zeros((len(matches), 1, 2), dtype=np.float32)
 
     # WRITE YOUR CODE HERE.
+    for index, match in enumerate(matches):
+        image_1_points[index] = image_1_kp[match.queryIdx].pt
+        image_2_points[index] = image_2_kp[match.trainIdx].pt
 
-
-
+    h, _ = cv2.findHomography(image_1_points, image_2_points, method = cv2.RANSAC,ransacReprojThreshold = 5.0)
+    return h
 
     # Replace this return statement with the homography.
-    return None
+    #return None
     # END OF FUNCTION
 
 def blendImagePair(warped_image, image_2, point):
@@ -283,8 +290,19 @@ def warpImagePair(image_1, image_2, homography):
     y_max = 0
 
     # WRITE YOUR CODE HERE
+    corners1 = getImageCorners(image_1)
+    corners2 = getImageCorners(image_2)
+    transformed1 = cv2.perspectiveTransform(corners1, homography)
+    #transformed2 = cv2.perspectiveTransform(corners2, homography)
 
+    transformed = np.append(transformed1, corners2, axis = 0)
 
+    x_min, y_min = np.amin(transformed[:, 0, :], axis = 0)
+    x_max, y_max = np.amax(transformed[:, 0, :], axis = 0)
+
+    translation_matrix = np.array([[1, 0, -1 * x_min], [0, 1, -1 * y_min], [0, 0, 1]], dtype = np.float32)
+    transf_homography = np.dot(translation_matrix, homography)
+    warped_image = cv2.warpPerspective(image_1, transf_homography,(x_max - x_min, y_max - y_min))
 
 
     # END OF CODING

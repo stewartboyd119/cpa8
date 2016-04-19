@@ -1,5 +1,5 @@
 # ASSIGNMENT 8
-# Your Name
+# Stewart Boyd
 
 import numpy as np
 import scipy as sp
@@ -219,8 +219,11 @@ def blendImagePair(warped_image, image_2, point):
     """
     output_image = np.copy(warped_image)
     # REPLACE THIS WITH YOUR BLENDING CODE.
-    output_image[point[1]:point[1] + image_2.shape[0],
-                 point[0]:point[0] + image_2.shape[1]] = image_2
+    im2r = image_2.shape[0]
+    im2c = image_2.shape[1]
+    output_image[point[1]:point[1] + im2r, point[0]:point[0] + im2c] = ((output_image[point[1]:point[1] + im2r,
+                                                                         point[0]:point[0] + im2c]).astype(np.int64) +
+                                                                        image_2.astype(np.int64)) / 2
 
 
 
@@ -302,6 +305,7 @@ def warpImagePair(image_1, image_2, homography):
 
     translation_matrix = np.array([[1, 0, -1 * x_min], [0, 1, -1 * y_min], [0, 0, 1]], dtype = np.float32)
     transf_homography = np.dot(translation_matrix, homography)
+    #transf_homography = homography
     warped_image = cv2.warpPerspective(image_1, transf_homography,(x_max - x_min, y_max - y_min))
 
 
